@@ -206,11 +206,20 @@ class FieldPaintGrid extends Blockly.Field {
             const el = document.elementFromPoint(t.clientX, t.clientY);
             if(el && el._paintIdx !== undefined) this._dot(el._paintIdx, el);
         };
-        const _onDocEnd = () => {
+        const _onDocEnd = (e) => {
             this._p = false;
             this._docListening = false;
             document.removeEventListener('touchmove', _onDocMove, {capture:true, passive:false});
-            document.removeEventListener('touchend',  _onDocEnd,  {capture:true});
+            document.removeEventListener('touchend',  _onDocEnd,  false);
+            /* Скидаємо стан Blockly — він не бачив touchstart/touchend через stopPropagation */
+            const bsvg = document.querySelector('.blocklySvg');
+            if(bsvg) {
+                try {
+                    /* pointerup скидає Blockly gesture state надійніше за touchend */
+                    bsvg.dispatchEvent(new PointerEvent('pointerup', {bubbles:true, cancelable:true, pointerId:1}));
+                    bsvg.dispatchEvent(new PointerEvent('pointercancel', {bubbles:true, pointerId:1}));
+                } catch(_) {}
+            }
         };
 
         for(let r=0;r<this.rows;r++) for(let c=0;c<this.cols;c++){
@@ -251,7 +260,7 @@ class FieldPaintGrid extends Blockly.Field {
                 if(!this._docListening) {
                     this._docListening = true;
                     document.addEventListener('touchmove', _onDocMove, {capture:true, passive:false});
-                    document.addEventListener('touchend',  _onDocEnd,  {capture:true});
+                    document.addEventListener('touchend',  _onDocEnd,  false);
                 }
             }, { passive:false });
             this._rects.push(rc);
@@ -961,3 +970,4 @@ window._updateBatDisplayBlocks = function() {
         }
     } catch(e) {}
 };
+
