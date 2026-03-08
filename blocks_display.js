@@ -1,4 +1,4 @@
-/* ================================================================
+\/* ================================================================
    blocks_display.js  v3
    PixelEngine + ігрові блоки + ігровий цикл + спрайти
    Тільки браузер. STM32 отримує лише RLE-bitmap.
@@ -211,15 +211,12 @@ class FieldPaintGrid extends Blockly.Field {
             this._docListening = false;
             document.removeEventListener('touchmove', _onDocMove, {capture:true, passive:false});
             document.removeEventListener('touchend',  _onDocEnd,  false);
-            /* Скидаємо стан Blockly — він не бачив touchstart/touchend через stopPropagation */
-            const bsvg = document.querySelector('.blocklySvg');
-            if(bsvg) {
-                try {
-                    /* pointerup скидає Blockly gesture state надійніше за touchend */
-                    bsvg.dispatchEvent(new PointerEvent('pointerup', {bubbles:true, cancelable:true, pointerId:1}));
-                    bsvg.dispatchEvent(new PointerEvent('pointercancel', {bubbles:true, pointerId:1}));
-                } catch(_) {}
-            }
+            /* Скидаємо gesture Blockly тільки якщо він завис (немає активного drag блоку) */
+            try {
+                const ws = window.workspace || Blockly.getMainWorkspace();
+                const g = ws && ws.currentGesture_;
+                if(g && !g.isDraggingBlock_) g.cancel();
+            } catch(_) {}
         };
 
         for(let r=0;r<this.rows;r++) for(let c=0;c<this.cols;c++){
