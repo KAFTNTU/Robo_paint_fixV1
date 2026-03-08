@@ -208,6 +208,7 @@ class FieldPaintGrid extends Blockly.Field {
         };
         const _onDocEnd = () => {
             this._p = false;
+            this._docListening = false;
             document.removeEventListener('touchmove', _onDocMove, {capture:true, passive:false});
             document.removeEventListener('touchend',  _onDocEnd,  {capture:true});
         };
@@ -247,8 +248,11 @@ class FieldPaintGrid extends Blockly.Field {
                 this._p = true;
                 this._e = this.pixels[idx] === 1;
                 this._dot(idx, rc);
-                document.addEventListener('touchmove', _onDocMove, {capture:true, passive:false});
-                document.addEventListener('touchend',  _onDocEnd,  {capture:true});
+                if(!this._docListening) {
+                    this._docListening = true;
+                    document.addEventListener('touchmove', _onDocMove, {capture:true, passive:false});
+                    document.addEventListener('touchend',  _onDocEnd,  {capture:true});
+                }
             }, { passive:false });
             this._rects.push(rc);
         }
@@ -957,4 +961,3 @@ window._updateBatDisplayBlocks = function() {
         }
     } catch(e) {}
 };
-
